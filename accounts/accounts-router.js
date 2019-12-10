@@ -57,7 +57,7 @@ router.get("/:id", checkAccountId, (req, res) => {
 });
 
 //Update Account
-router.put("/:id", checkAccountId, (req, res) => {
+router.put("/:id", checkAccountId, checkReqBody, (req, res) => {
   const { id } = req.params;
   const changes = req.body;
 
@@ -65,12 +65,10 @@ router.put("/:id", checkAccountId, (req, res) => {
     .where({ id })
     .update(changes)
     .then(count => {
-        console.log(`${count} Account ${id} has been successfully updated.`);
-      res
-        .status(200)
-        .json({
-          message: `${count} Account ${id} has been successfully updated.`
-        });
+      console.log(`${count} Account ${id} has been successfully updated.`);
+      res.status(200).json({
+        message: `${count} Account ${id} has been successfully updated.`
+      });
     })
     .catch(err => {
       const { id } = req.params;
@@ -80,18 +78,38 @@ router.put("/:id", checkAccountId, (req, res) => {
 });
 
 //Delete Account
-router.delete("/:id", checkAccountId, (req, res) => {});
+router.delete("/:id", checkAccountId, (req, res) => {
+    const id = req.params.id;
+    db("accounts")
+    .where ({ id })
+    .del()
+    .then(count => {
+        if (count = 1){
+        res.status(200).json({ message: `Account with id ${id} has been successfully deleted.`})
+        }
+    })
+    .catch(err => {
+        const id=  req.params.id;
+        console.log("Delete Account Error:", err);
+        res.status(500).json({ message: `Error deleting account id ${id}` });
+    })
+});
 
 //custom middleware
 function checkReqBody(req, res, next) {
+  console.log("checkReqBody", req.method);
   if (Object.keys(req.body).length === 0) {
     res.status(404).json({ message: "Please enter account data" });
-  } else if (req.method === "put") {
-    if (!req.body.name || !req.body.budget) {
+  } else if (req.method === "PUT") {
+    if (!req.body.name && !req.body.budget) {
       res
         .status(404)
-        .json({ message: "Please provide updates to account name or budget" });
-    } else if (!req.body.name) {
+        .json({ message: "Please specify updates to account name or budget" });
+    } else {
+      next();
+    }
+  } else {
+    if (!req.body.name) {
       res.status(404).json({ message: "Please provide Account Name" });
     } else if (!req.body.budget) {
       res.status(404).json({ message: "Please provide Account Budget" });
