@@ -99,20 +99,20 @@ router.delete("/:id", checkAccountId, (req, res) => {
 function checkReqBody(req, res, next) {
   console.log("checkReqBody", req.method);
   if (Object.keys(req.body).length === 0) {
-    res.status(404).json({ message: "Please enter account data" });
+    res.status(400).json({ message: "Please enter account data" });
   } else if (req.method === "PUT") {
     if (!req.body.name && !req.body.budget) {
       res
-        .status(404)
+        .status(400)
         .json({ message: "Please specify updates to account name or budget" });
     } else {
       next();
     }
   } else {
     if (!req.body.name) {
-      res.status(404).json({ message: "Please provide Account Name" });
+      res.status(400).json({ message: "Please provide Account Name" });
     } else if (!req.body.budget) {
-      res.status(404).json({ message: "Please provide Account Budget" });
+      res.status(400).json({ message: "Please provide Account Budget" });
     } else {
       next();
     }
@@ -130,7 +130,7 @@ function checkAccountId(req, res, next) {
       if (account) {
         next();
       } else {
-        res.status(400).json({ message: `${id} not a valid account number.` });
+        res.status(404).json({ message: `${id} not a valid account number.` });
       }
     });
 }
